@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happydemics — Campaign Delivery Survey</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: #F7F6F3; color: #1A1A1A; min-height: 100vh; display: flex; justify-content: center; padding: 3rem 1.5rem 5rem; }
+  .container { width: 100%; max-width: 660px; }
+  .sans { font-family: 'Helvetica Neue', Arial, sans-serif; }
+
+  .header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid #E0DDD6; }
+  .brand { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 1.5rem; }
+  .survey-title { font-size: 26px; font-weight: normal; line-height: 1.35; color: #1A1A1A; margin-bottom: 1.25rem; }
+  .survey-intro { font-size: 15px; color: #555; line-height: 1.8; }
+  .survey-intro p + p { margin-top: 1em; }
+
+  .section { margin-bottom: 0; }
+  .section-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #AAA; display: block; margin-bottom: 0.6rem; }
+  .section-title { font-size: 17px; font-weight: normal; color: #1A1A1A; margin-bottom: 0.4rem; line-height: 1.4; }
+  .section-sub { font-size: 13px; color: #777; line-height: 1.7; margin-bottom: 1.25rem; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .divider { border: none; border-top: 1px solid #E8E5DE; margin: 2.5rem 0; }
+
+  /* Q1 — utility scale */
+  .scale-wrap { display: flex; gap: 10px; }
+  .scale-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #FFF; border: 1px solid #E8E5DE; border-radius: 10px; padding: 16px 8px 14px; cursor: pointer; transition: border-color 0.15s; }
+  .scale-btn:hover { border-color: #C8C5BE; }
+  .scale-btn.selected { border-color: #1A1A1A; background: #1A1A1A; }
+  .scale-num { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 500; color: #CCC; transition: color 0.15s; }
+  .scale-btn.selected .scale-num { color: #FFF; }
+  .scale-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #AAA; text-align: center; line-height: 1.4; transition: color 0.15s; }
+  .scale-btn.selected .scale-desc { color: #CCC; }
+  .scale-ends { display: flex; justify-content: space-between; margin-top: 8px; }
+  .scale-end { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #AAA; }
+
+  /* Q2 — ranking */
+  .rank-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .rank-item { display: flex; align-items: center; gap: 10px; background: #FFF; border: 1px solid #E8E5DE; border-radius: 8px; padding: 11px 13px; cursor: grab; user-select: none; transition: border-color 0.15s; }
+  .rank-item:hover { border-color: #C8C5BE; }
+  .rank-item.dragging { opacity: 0.35; cursor: grabbing; }
+  .rank-item.over { border-color: #2563EB; background: #EFF6FF; }
+  .rank-num { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 600; color: #BBB; min-width: 18px; text-align: center; }
+  .rank-grip { color: #CCC; font-size: 15px; line-height: 1; }
+  .rank-main { flex: 1; }
+  .rank-name { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; font-weight: 500; color: #1A1A1A; }
+  .rank-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #999; margin-top: 1px; }
+  .excl-btn { background: none; border: none; cursor: pointer; color: #CCC; padding: 3px 5px; border-radius: 4px; font-size: 14px; line-height: 1; transition: color 0.12s; }
+  .excl-btn:hover { color: #888; }
+  .excluded-area { margin-top: 12px; display: none; }
+  .excluded-title { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #AAA; margin-bottom: 8px; }
+  .excluded-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; background: #EEEAE3; border: 1px solid #E0DDD6; border-radius: 99px; padding: 4px 10px; color: #777; }
+  .chip-restore { background: none; border: none; cursor: pointer; color: #AAA; font-size: 13px; padding: 0; line-height: 1; transition: color 0.12s; }
+  .chip-restore:hover { color: #1A1A1A; }
+
+  /* Q3 — granularity */
+  .legend { display: flex; gap: 20px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; color: #777; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .dot-yes { background: #2563EB; }
+  .dot-no { background: #D97706; }
+  .gran-table { width: 100%; border-collapse: collapse; }
+  .gran-table th { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #999; text-align: left; padding: 9px 13px; border-bottom: 1px solid #E0DDD6; background: #F3F1EC; }
+  .gran-table th.center { text-align: center; }
+  .gran-table td { padding: 11px 13px; border-bottom: 1px solid #F0EDE8; vertical-align: middle; }
+  .gran-table tr:last-child td { border-bottom: none; }
+  .gran-table tr:hover td { background: #FAFAF8; }
+  .gran-name { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; font-weight: 500; color: #1A1A1A; }
+  .gran-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #999; margin-top: 2px; }
+  .opt-cell { text-align: center; }
+  .radio-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #DDD; background: #FFF; cursor: pointer; transition: all 0.12s; font-size: 14px; color: #CCC; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .radio-btn:hover { border-color: #2563EB; color: #2563EB; }
+  .radio-btn.sel-yes { background: #EFF6FF; border-color: #2563EB; color: #1D4ED8; }
+  .radio-btn.sel-no { background: #FFFBEB; border-color: #D97706; color: #B45309; }
+  .col-label { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .col-label-main { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #999; text-transform: uppercase; }
+  .col-label-emph { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-style: italic; color: #B5763A; font-weight: normal; text-transform: none; letter-spacing: 0; }
+  .empty-gran { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #AAA; padding: 20px 0; text-align: center; display: none; }
+
+  /* Q4 — team profiles */
+  .profiles-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .profile-btn { display: flex; align-items: center; gap: 8px; background: #FFF; border: 1px solid #E8E5DE; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: border-color 0.15s; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #1A1A1A; user-select: none; }
+  .profile-btn:hover { border-color: #C8C5BE; }
+  .profile-btn.selected { border-color: #1A1A1A; background: #F7F6F3; }
+  .profile-check { width: 16px; height: 16px; border: 1px solid #DDD; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; color: transparent; transition: all 0.12s; }
+  .profile-btn.selected .profile-check { background: #1A1A1A; border-color: #1A1A1A; color: #FFF; }
+  .other-input { margin-top: 10px; display: none; }
+  .other-input input { width: 100%; background: #FFF; border: 1px solid #E8E5DE; border-radius: 8px; padding: 10px 14px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #1A1A1A; outline: none; transition: border-color 0.15s; }
+  .other-input input:focus { border-color: #AAA; }
+
+  /* Q5 — timing */
+  .timing-options { display: flex; flex-direction: column; gap: 8px; }
+  .timing-btn { display: flex; align-items: flex-start; gap: 12px; background: #FFF; border: 1px solid #E8E5DE; border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: border-color 0.15s; user-select: none; }
+  .timing-btn:hover { border-color: #C8C5BE; }
+  .timing-btn.selected { border-color: #1A1A1A; background: #F7F6F3; }
+  .timing-radio { width: 17px; height: 17px; border: 1px solid #DDD; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all 0.12s; }
+  .timing-btn.selected .timing-radio { border-color: #1A1A1A; }
+  .timing-dot { width: 8px; height: 8px; border-radius: 50%; background: #1A1A1A; display: none; }
+  .timing-btn.selected .timing-dot { display: block; }
+  .timing-body { flex: 1; }
+  .timing-title { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; font-weight: 500; color: #1A1A1A; margin-bottom: 2px; }
+  .timing-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; color: #999; line-height: 1.5; }
+
+  /* submit */
+  .submit-area { margin-top: 2.5rem; display: flex; align-items: center; gap: 16px; }
+  .submit-btn { background: #1A1A1A; color: #FFF; border: none; border-radius: 8px; padding: 12px 28px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s; }
+  .submit-btn:hover { background: #333; }
+  .counter { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; color: #AAA; }
+
+  /* thank you */
+  .thankyou { display: none; text-align: center; padding: 4rem 2rem; }
+  .thankyou-icon { font-size: 40px; color: #CCC; margin-bottom: 1.5rem; }
+  .thankyou-title { font-size: 22px; font-weight: normal; color: #1A1A1A; margin-bottom: 1rem; }
+  .thankyou-sub { font-size: 14px; color: #777; line-height: 1.8; max-width: 420px; margin: 0 auto; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .thankyou-line { width: 40px; height: 1px; background: #DDD; margin: 2rem auto; }
+  .thankyou-sign { font-size: 12px; color: #AAA; font-family: 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="surveyForm">
+    <div class="header">
+      <p class="brand">Happydemics — Product Survey</p>
+      <h1 class="survey-title">Help us build the right campaign delivery insights for you</h1>
+      <div class="survey-intro">
+        <p>At Happydemics, we are exploring a new feature that would enrich your Brand Lift results with campaign delivery data — enabling you to connect brand performance with how and where your ads were served.</p>
+        <p>To make sure we build something that genuinely fits your workflow, we have seven focused questions for you. This should take no more than 5 minutes.</p>
+      </div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="section">
+      <span class="section-label">Question 1 of 7</span>
+      <p class="section-title">What company do you work for?</p>
+      <input type="text" id="companyText" placeholder="Your company name..." style="width:100%;background:#FFF;border:1px solid #E8E5DE;border-radius:8px;padding:12px 14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#1A1A1A;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='#AAA'" onblur="this.style.borderColor='#E8E5DE'">
+    </div>
+
+    <hr class="divider">
+
+    <!-- Q2 -->
+    <div class="section">
+      <span class="section-label">Question 2 of 7</span>
+      <p class="section-title">What is your role?</p>
+      <p class="section-sub">Select the option that best describes your position.</p>
+      <div class="profiles-grid" id="roleGrid">
+        <button type="button" class="profile-btn role-btn" data-val="Trader / Programmatic buyer"><span class="profile-check">✓</span>Trader / Programmatic buyer</button>
+        <button type="button" class="profile-btn role-btn" data-val="Campaign manager"><span class="profile-check">✓</span>Campaign manager</button>
+        <button type="button" class="profile-btn role-btn" data-val="Media planner"><span class="profile-check">✓</span>Media planner</button>
+        <button type="button" class="profile-btn role-btn" data-val="Data analyst"><span class="profile-check">✓</span>Data analyst</button>
+        <button type="button" class="profile-btn role-btn" data-val="Account manager"><span class="profile-check">✓</span>Account manager</button>
+        <button type="button" class="profile-btn role-btn" data-val="Marketing manager"><span class="profile-check">✓</span>Marketing manager</button>
+        <button type="button" class="profile-btn role-btn" data-val="Other" id="roleOther"><span class="profile-check">✓</span>Other</button>
+      </div>
+      <div class="other-input" id="roleOtherInput">
+        <input type="text" placeholder="Please specify..." id="roleOtherText">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Q2 -->
+    <div class="section">
+      <span class="section-label">Question 4 of 7</span>
+      <p class="section-title">Rank the following dimensions by how useful they are for your campaign optimisations</p>
+      <p class="section-sub">Drag and drop from most to least important. If a dimension is not relevant to your activity, remove it using the × button.</p>
+      <ul class="rank-list" id="rankList">
+        <li class="rank-item" draggable="true" data-id="timestamp"><span class="rank-num">1</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">Timestamp</p><p class="rank-desc">e.g. 8am vs 8pm, Monday vs Saturday, weekday vs. weekend</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="location"><span class="rank-num">2</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">Location</p><p class="rank-desc">e.g. Île-de-France, Grand Est, city of Lyon</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="domain"><span class="rank-num">3</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">Domain</p><p class="rank-desc">e.g. lefigaro.fr, youtube.com, twitch.tv</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="publisher"><span class="rank-num">4</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">Publisher / App name</p><p class="rank-desc">e.g. Le Monde, Spotify, Snapchat</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="iab"><span class="rank-num">5</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">IAB cluster</p><p class="rank-desc">e.g. Sports, Finance, Health & Wellness</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="os"><span class="rank-num">6</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">OS</p><p class="rank-desc">e.g. iOS, Android, Windows</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="device"><span class="rank-num">7</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">Device</p><p class="rank-desc">e.g. Smartphone, Desktop, Connected TV</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="placement"><span class="rank-num">8</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">Placement</p><p class="rank-desc">e.g. In-stream, In-banner, Interstitial</p></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+        <li class="rank-item" draggable="true" data-id="other_dimension"><span class="rank-num">9</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">Other</p><input type="text" id="otherDimensionText" placeholder="Please specify..." style="margin-top:5px;width:100%;background:transparent;border:none;border-bottom:1px solid #DDD;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#1A1A1A;padding:2px 0;outline:none;" onclick="event.stopPropagation()"></div><button type="button" class="excl-btn" title="Remove">×</button></li>
+      </ul>
+      <div class="excluded-area" id="excludedArea">
+        <p class="excluded-title">Removed as not relevant — click + to add back</p>
+        <div class="excluded-chips" id="excludedChips"></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Q3 -->
+    <div class="section">
+      <span class="section-label">Question 4 of 7</span>
+      <p class="section-title">For each dimension you kept, would an aggregated view across all your campaigns be sufficient?</p>
+      <p class="section-sub">Or would you absolutely need to see this data broken down campaign by campaign — and could not work without it?</p>
+      <div class="legend">
+        <div class="legend-item"><div class="dot dot-yes"></div>Aggregated view is sufficient</div>
+        <div class="legend-item"><div class="dot dot-no"></div>I absolutely need a per-campaign breakdown</div>
+      </div>
+      <table class="gran-table" id="granTable">
+        <thead>
+          <tr>
+            <th style="width:42%">Dimension</th>
+            <th class="center" style="width:29%"><div class="col-label"><span class="col-label-main">Aggregated view</span><span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;color:#AAA;font-weight:normal;">sufficient</span></div></th>
+            <th class="center" style="width:29%"><div class="col-label"><span class="col-label-main">Per-campaign</span><span class="col-label-emph">absolutely needed</span></div></th>
+          </tr>
+        </thead>
+        <tbody id="granBody"></tbody>
+      </table>
+      <p class="empty-gran" id="emptyGran">All dimensions have been removed. Add at least one back to answer this question.</p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Q4 -->
+    <div class="section">
+      <span class="section-label">Question 5 of 7</span>
+      <p class="section-title">Who in your team would use this feature?</p>
+      <p class="section-sub">Select all profiles that apply.</p>
+      <div class="profiles-grid" id="profilesGrid">
+        <button type="button" class="profile-btn" data-val="Trader / Programmatic buyer"><span class="profile-check">✓</span>Trader / Programmatic buyer</button>
+        <button type="button" class="profile-btn" data-val="Campaign manager"><span class="profile-check">✓</span>Campaign manager</button>
+        <button type="button" class="profile-btn" data-val="Media planner"><span class="profile-check">✓</span>Media planner</button>
+        <button type="button" class="profile-btn" data-val="Data analyst"><span class="profile-check">✓</span>Data analyst</button>
+        <button type="button" class="profile-btn" data-val="Account manager"><span class="profile-check">✓</span>Account manager</button>
+        <button type="button" class="profile-btn" data-val="Client / Advertiser"><span class="profile-check">✓</span>Client / Advertiser</button>
+        <button type="button" class="profile-btn" data-val="Other" id="profileOther"><span class="profile-check">✓</span>Other</button>
+      </div>
+      <div class="other-input" id="otherInput">
+        <input type="text" placeholder="Please specify..." id="otherText">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Q5 -->
+    <div class="section">
+      <span class="section-label">Question 6 of 7</span>
+      <p class="section-title">At what stage of a campaign would you use these delivery insights?</p>
+      <p class="section-sub">Choose the option that best describes your typical workflow.</p>
+      <div class="timing-options" id="timingOptions">
+        <button type="button" class="timing-btn" data-val="post">
+          <div class="timing-radio"><div class="timing-dot"></div></div>
+          <div class="timing-body">
+            <p class="timing-title">Post-campaign only</p>
+            <p class="timing-desc">I would use this data to inform and improve my next campaigns.</p>
+          </div>
+        </button>
+        <button type="button" class="timing-btn" data-val="inflight">
+          <div class="timing-radio"><div class="timing-dot"></div></div>
+          <div class="timing-body">
+            <p class="timing-title">During the campaign (in-flight) only</p>
+            <p class="timing-desc">I would use it to make real-time adjustments while the campaign is running.</p>
+          </div>
+        </button>
+        <button type="button" class="timing-btn" data-val="both">
+          <div class="timing-radio"><div class="timing-dot"></div></div>
+          <div class="timing-body">
+            <p class="timing-title">Both</p>
+            <p class="timing-desc">I need visibility at both stages — to optimise in the moment and plan ahead.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Q6 -->
+    <div class="section">
+      <span class="section-label">Question 7 of 7</span>
+      <p class="section-title">Overall, how useful would this feature be for you?</p>
+      <p class="section-sub">Rate from 1 (not useful at all) to 4 (essential to your workflow).</p>
+      <div class="scale-wrap" id="scaleWrap">
+        <button type="button" class="scale-btn" data-val="1"><span class="scale-num">1</span><span class="scale-desc">Not useful</span></button>
+        <button type="button" class="scale-btn" data-val="2"><span class="scale-num">2</span><span class="scale-desc">Slightly useful</span></button>
+        <button type="button" class="scale-btn" data-val="3"><span class="scale-num">3</span><span class="scale-desc">Useful</span></button>
+        <button type="button" class="scale-btn" data-val="4"><span class="scale-num">4</span><span class="scale-desc">Essential</span></button>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <button class="submit-btn" id="submitBtn">Submit →</button>
+      <span class="counter" id="counter"></span>
+    </div>
+  </div>
+
+  <div class="thankyou" id="thankYou">
+    <div class="thankyou-icon">✓</div>
+    <p class="thankyou-title">Thank you for your input.</p>
+    <p class="thankyou-sub">Your answers will directly shape how we build this feature. We will keep you informed as things move forward — and may reach out if we have follow-up questions.</p>
+    <div class="thankyou-line"></div>
+    <p class="thankyou-sign">Happydemics Product Team</p>
+  </div>
+
+</div>
+<script>
+const levers = [
+  { id: 'timestamp', label: 'Timestamp', sub: 'e.g. 8am vs 8pm, Monday vs Saturday' },
+  { id: 'location', label: 'Location', sub: 'e.g. Île-de-France, city of Lyon' },
+  { id: 'domain', label: 'Domain', sub: 'e.g. lefigaro.fr, youtube.com' },
+  { id: 'publisher', label: 'Publisher / App name', sub: 'e.g. Le Monde, Spotify, Snapchat' },
+  { id: 'iab', label: 'IAB cluster', sub: 'e.g. Sports, Finance, Health & Wellness' },
+  { id: 'os', label: 'OS', sub: 'e.g. iOS, Android, Windows' },
+  { id: 'device', label: 'Device', sub: 'e.g. Smartphone, Desktop, Connected TV' },
+  { id: 'placement', label: 'Placement', sub: 'e.g. In-stream, In-banner, Interstitial' },
+  { id: 'other_dimension', label: 'Other', sub: '' },
+];
+
+const excluded = new Set();
+const granAnswers = {};
+let dragSrc = null;
+let utilityScore = null;
+let timingAnswer = null;
+
+const rankList = document.getElementById('rankList');
+const excludedArea = document.getElementById('excludedArea');
+const excludedChips = document.getElementById('excludedChips');
+const granBody = document.getElementById('granBody');
+const granTable = document.getElementById('granTable');
+const emptyGran = document.getElementById('emptyGran');
+
+function getLever(id) {
+  if (id === 'other_dimension') {
+    const txt = document.getElementById('otherDimensionText');
+    const val = txt ? txt.value.trim() : '';
+    return { id: 'other_dimension', label: val ? `Other: ${val}` : 'Other', sub: '' };
+  }
+  return levers.find(l => l.id === id);
+}
+
+function updateNums() {
+  rankList.querySelectorAll('.rank-item').forEach((el, i) => {
+    el.querySelector('.rank-num').textContent = i + 1;
+  });
+}
+
+function updateGranTable() {
+  const active = [...rankList.querySelectorAll('.rank-item')];
+  granBody.innerHTML = '';
+  if (active.length === 0) {
+    granTable.style.display = 'none';
+    emptyGran.style.display = 'block';
+    return;
+  }
+  granTable.style.display = 'table';
+  emptyGran.style.display = 'none';
+  active.forEach(item => {
+    const id = item.dataset.id;
+    const l = getLever(id);
+    const ans = granAnswers[id];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><p class="gran-name">${l.label}</p>${l.sub ? `<p class="gran-desc">${l.sub}</p>` : ''}</td>
+      <td class="opt-cell"><button type="button" class="radio-btn${ans==='global'?' sel-yes':''}" data-id="${id}" data-val="global" title="Aggregated view sufficient">✓</button></td>
+      <td class="opt-cell"><button type="button" class="radio-btn${ans==='per_campaign'?' sel-no':''}" data-id="${id}" data-val="per_campaign" title="I absolutely need a per-campaign breakdown">!</button></td>
+    `;
+    granBody.appendChild(tr);
+  });
+}
+
+function excludeItem(id) {
+  excluded.add(id);
+  delete granAnswers[id];
+  rankList.querySelector(`[data-id="${id}"]`).remove();
+  updateNums();
+  const l = getLever(id);
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.dataset.id = id;
+  chip.innerHTML = `${l.label} <button type="button" class="chip-restore" data-id="${id}" title="Add back">+</button>`;
+  excludedChips.appendChild(chip);
+  excludedArea.style.display = 'block';
+  updateGranTable();
+}
+
+function restoreItem(id) {
+  excluded.delete(id);
+  excludedChips.querySelector(`[data-id="${id}"]`).remove();
+  if (!excludedChips.children.length) excludedArea.style.display = 'none';
+  const l = getLever(id);
+  const li = document.createElement('li');
+  li.className = 'rank-item';
+  li.draggable = true;
+  li.dataset.id = id;
+  li.innerHTML = `<span class="rank-num">?</span><span class="rank-grip">⠿</span><div class="rank-main"><p class="rank-name">${l.label}</p>${l.sub ? `<p class="rank-desc">${l.sub}</p>` : ''}</div><button type="button" class="excl-btn" title="Remove">×</button>`;
+  rankList.appendChild(li);
+  updateNums();
+  updateGranTable();
+}
+
+// Q1 — role (single select)
+let roleAnswer = null;
+document.getElementById('roleGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.role-btn');
+  if (!btn) return;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  roleAnswer = btn.dataset.val;
+  const roleOtherInput = document.getElementById('roleOtherInput');
+  roleOtherInput.style.display = btn.id === 'roleOther' ? 'block' : 'none';
+});
+document.getElementById('scaleWrap').addEventListener('click', e => {
+  const btn = e.target.closest('.scale-btn');
+  if (!btn) return;
+  document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  utilityScore = btn.dataset.val;
+});
+
+// Q2 drag
+rankList.addEventListener('click', e => {
+  const btn = e.target.closest('.excl-btn');
+  if (btn) excludeItem(btn.closest('.rank-item').dataset.id);
+});
+excludedChips.addEventListener('click', e => {
+  const btn = e.target.closest('.chip-restore');
+  if (btn) restoreItem(btn.dataset.id);
+});
+rankList.addEventListener('dragstart', e => {
+  dragSrc = e.target.closest('.rank-item');
+  if (dragSrc) dragSrc.classList.add('dragging');
+});
+rankList.addEventListener('dragend', e => {
+  const item = e.target.closest('.rank-item');
+  if (item) item.classList.remove('dragging');
+  rankList.querySelectorAll('.rank-item').forEach(el => el.classList.remove('over'));
+  updateNums();
+  updateGranTable();
+});
+rankList.addEventListener('dragover', e => {
+  e.preventDefault();
+  const target = e.target.closest('.rank-item');
+  if (!target || target === dragSrc) return;
+  rankList.querySelectorAll('.rank-item').forEach(el => el.classList.remove('over'));
+  target.classList.add('over');
+  const rect = target.getBoundingClientRect();
+  if (e.clientY < rect.top + rect.height / 2) rankList.insertBefore(dragSrc, target);
+  else rankList.insertBefore(dragSrc, target.nextSibling);
+});
+rankList.addEventListener('dragleave', e => {
+  const t = e.target.closest('.rank-item');
+  if (t) t.classList.remove('over');
+});
+rankList.addEventListener('drop', e => e.preventDefault());
+
+// Q3
+granBody.addEventListener('click', e => {
+  const btn = e.target.closest('.radio-btn');
+  if (!btn) return;
+  granAnswers[btn.dataset.id] = btn.dataset.val;
+  btn.closest('tr').querySelectorAll('.radio-btn').forEach(b => b.classList.remove('sel-yes','sel-no'));
+  btn.classList.add(btn.dataset.val === 'global' ? 'sel-yes' : 'sel-no');
+});
+
+// Q4
+document.getElementById('profilesGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.profile-btn');
+  if (!btn) return;
+  btn.classList.toggle('selected');
+  const otherInput = document.getElementById('otherInput');
+  if (btn.id === 'profileOther') {
+    otherInput.style.display = btn.classList.contains('selected') ? 'block' : 'none';
+  }
+});
+
+// Q5
+document.getElementById('timingOptions').addEventListener('click', e => {
+  const btn = e.target.closest('.timing-btn');
+  if (!btn) return;
+  document.querySelectorAll('.timing-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  timingAnswer = btn.dataset.val;
+});
+
+// Submit
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyLbe2vEqtzEcPIvk6HF0l0T6ic_hFyC6wW7_GzPopTVOGrzl_jEJZZdT1bcdgNjPGb/exec';
+
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  const ranked = [...rankList.querySelectorAll('.rank-item')].map((el, i) => `${i+1}. ${getLever(el.dataset.id).label}`);
+  const excl = [...excluded].map(id => getLever(id).label);
+  const labelMap = { global: 'Aggregated view sufficient', per_campaign: 'I absolutely need a per-campaign breakdown' };
+  const gran = [...rankList.querySelectorAll('.rank-item')].map(el => {
+    const l = getLever(el.dataset.id);
+    return `${l.label}: ${granAnswers[el.dataset.id] ? labelMap[granAnswers[el.dataset.id]] : '(no answer)'}`;
+  });
+  const selectedProfiles = [...document.querySelectorAll('.profile-btn.selected')].map(b => {
+    if (b.id === 'profileOther') {
+      const txt = document.getElementById('otherText').value.trim();
+      return txt ? `Other: ${txt}` : 'Other';
+    }
+    return b.dataset.val;
+  });
+  const timingLabels = { post: 'Post-campaign only', inflight: 'In-flight only', both: 'Both' };
+  const roleVal = roleAnswer === 'Other' ? ('Other: ' + (document.getElementById('roleOtherText').value.trim() || '—')) : (roleAnswer || '(no answer)');
+
+  const payload = {
+    'Timestamp': new Date().toISOString(),
+    'Q1 - Company': document.getElementById('companyText').value.trim() || '(no answer)',
+    'Q2 - Role': roleVal,
+    'Q3 - Ranking': ranked.join(' | ') + (excl.length ? ' | Removed: ' + excl.join(', ') : ''),
+    'Q4 - Granularity': gran.join(' | '),
+    'Q5 - Team profiles': selectedProfiles.length ? selectedProfiles.join(', ') : '(no answer)',
+    'Q6 - Timing': timingAnswer ? timingLabels[timingAnswer] : '(no answer)',
+    'Q7 - Utility score': utilityScore || '(no answer)',
+  };
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.textContent = 'Sending...';
+  submitBtn.disabled = true;
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn('Submission error:', err);
+  }
+
+  document.getElementById('surveyForm').style.display = 'none';
+  document.getElementById('thankYou').style.display = 'block';
+});
+
+updateGranTable();
+</script>
+</body>
+</html>
